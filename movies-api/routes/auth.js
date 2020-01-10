@@ -24,7 +24,7 @@ const UsersService = require('../services/users');
 const validationhandler = require('../utils/middleware/validationHandler');
 
 //requerimos el schema de creacion de usurio
-const { createUserSchema } = require('../utils/schemas/users');
+const { createUserSchema, createProviderUserSchema } = require('../utils/schemas/users');
 
 //requerimos el config que es donde tenemos el secret para firmar nuestros jwt
 const { config } = require('../config');
@@ -152,6 +152,42 @@ function authApi(app) {
             
         } catch (error) {
             //invocamos un error con la funcionalidad de codigo asincrono next()
+            next(error);
+        }
+    });
+
+    router.post('/sign-provider', validationhandler(createProviderUserSchema), async (req, res, next) => {
+        const { body } = req;
+
+        const { apiKeyToken, ...user } = body;
+
+        if(!apiKeyToken) {
+            next(boom.unauthorized('apiKey Token is required'));
+        }
+
+        try {
+            const queriedUser = await usersService.getOrCreateUser({ user });
+            const apiKey = await apiKeysService.getApiKey({ token: apiKeyToken });
+
+            if(!apiKey) {
+                next(boom.unauthorized());
+            }
+
+            const { _id: id, name, email } = queriedUser;
+
+            const payload = {
+                sub: id, 
+                name, 
+                email,
+                scopes: apiKey.scopes
+            }
+
+            const token = jwt.sign(payload, config.authJwtSecret, {
+                'expiresIn': '15m'
+            });
+
+            res.status(200).json({token, user: { id, name, email }});
+        } catch (error) {
             next(error);
         }
     });
