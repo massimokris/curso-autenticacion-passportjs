@@ -1,6 +1,6 @@
 const passport = require("passport");
 const axios = require("axios");
-const boom = requiere("@hapi/boom");
+const boom = require("@hapi/boom");
 //libreria de OAUTH para aplicar nuestra estrategia de autenticación
 const { OAuth2Strategy } = require("passport-oauth");
 
@@ -17,8 +17,8 @@ const oAuth2Strategy = new OAuth2Strategy(
   {
     authorizationURL: GOOGLE_AUTHORIZATION_URL,
     tokenURL: GOOGLE_TOKEN_URL,
-    clientID: config.clientID,
-    clientSecret: config.clientSecret,
+    clientID: config.googleClientId,
+    clientSecret: config.googleClientSecret,
     callbackURL: "/auth/google-oauth/callback"
   },
   async function(accessToken, refreshToken, profile, cb) {
@@ -43,25 +43,25 @@ const oAuth2Strategy = new OAuth2Strategy(
 
 //implementamos como OAUTH va a definir nuestro profile
 oAuth2Strategy.userProfile = function(accessToken, done) {
-    this.oauth2.get(GOOGLE_USERINFO_URL, accessToken, (err, body) => {
-        if(err) {
-            return done(err);
-        }
+  this._oauth2.get(GOOGLE_USERINFO_URL, accessToken, (err, body) => {
+    if (err) {
+      return done(err);
+    }
 
-        try {
-            const { sub, name, email } = JSON.parse(body);
+    try {
+      const { sub, name, email } = JSON.parse(body);
 
-            const profile = {
-                id: sub,
-                name,
-                email
-            }
+      const profile = {
+        id: sub,
+        name,
+        email
+      };
 
-            done(null, profile);
-        } catch (parseError) {
-            return done(parseError)
-        }
-    })
+      done(null, profile);
+    } catch (parseError) {
+      return done(parseError);
+    }
+  });
 };
 
-passport.use('google-oauth', oAuth2Strategy);
+passport.use("google-oauth", oAuth2Strategy);

@@ -26,7 +26,7 @@ const createUserSchema = {
 
 const createProviderUserSchema = {
   ...userSchema,
-  apiKeyToken: joi.string().require()
+  apiKeyToken: joi.string().required()
 }
 //exporto los modulos de id de usuario y de crear un usuario
 module.exports = {
