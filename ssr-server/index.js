@@ -3,6 +3,9 @@ const express = require("express");
 //requiero passport para la seguridad
 const passport = require("passport");
 
+//requiero session para manejar las session de inicio con twitter
+const session = require("express-session");
+
 //requiero boom para el manejo de errores
 const boom = require("@hapi/boom");
 
@@ -22,11 +25,24 @@ app.use(express.json());
 //middleware de cookieParser
 app.use(cookieParser());
 
+//implementando la session para twitter
+app.use(session({ secret: config.sessionSecret }));
+
+//utilizamos initialize y session para twitter
+app.use(passport.initialize());
+app.use(passport.session());
+
 //requerimos la estrategia que vamos a utilizar
 require("./utils/auth/strategies/basic");
 
 //OAUTH strategy
 require("./utils/auth/strategies/oauth");
+
+//google strategy
+require("./utils/auth/strategies/google");
+
+//twitter strategy
+require("./utils/auth/strategies/twitter");
 
 /**
  * Utilizaremos este servicio como una especie de
@@ -150,6 +166,50 @@ app.get(
     res.status(200).json(user);
   }
 );
+
+//autanticación con google de manera mas simple con la google strategy
+app.get(
+  "/auth/google",
+  passport.authenticate("google", {
+    scope: ["email", "profile", "openid"]
+  })
+);
+
+app.get(
+  "/auth/google/callback",
+  passport.authenticate("google", { session: false }),
+  function(req, res, next) {
+    if (!req.user) {
+      next(boom.unauthorized());
+    }
+
+    const { token, ...user } = req.user;
+
+    res.cookie("token", token, {
+      httpOnly: !config.dev,
+      secure: !config.dev
+    });
+
+    res.status(200).json(user);
+  }
+);
+
+app.get("/auth/twitter", passport.authenticate("twitter"));
+
+app.get("/auth/twitter/callback", passport.authenticate("twitter", {session: false}), function(req, res, next) {
+    if(!req.user){
+        next(boom.unauthorized());
+    }
+
+    const { token, ...user } = req.user;
+
+    res.cookie('token', token, {
+        httpOnly: !config.dev,
+        secure: !config.dev
+    });
+
+    res.status(200).json(user);
+});
 
 app.listen(config.port, function() {
   console.log(`Listening http://localhost:${config.port}`);
