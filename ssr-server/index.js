@@ -1,5 +1,10 @@
 const express = require("express");
 
+//middleware que nos ayuda a la seguridad de nuestra aplicación
+//con 13 codigo http que la hacen mas segura
+const helmet = require('helmet');
+const cors = require('cors');
+
 //requiero passport para la seguridad
 const passport = require("passport");
 
@@ -21,6 +26,10 @@ const app = express();
 
 // body parser
 app.use(express.json());
+
+//helmet para seguridad
+app.use(helmet());
+app.use(cors());
 
 //middleware de cookieParser
 app.use(cookieParser());

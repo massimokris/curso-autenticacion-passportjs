@@ -1,4 +1,8 @@
 const express = require('express');
+
+//middleware que nos ayuda a la seguridad de nuestra aplicación
+//con 13 codigo http que la hacen mas segura
+const helmet = require('helmet');
 const cors = require('cors');
 
 //instanciamos un servidor de express para utilizar al exponer la rutas de nuestros servicios
@@ -29,6 +33,7 @@ const notFoundHandler = require('./utils/middleware/notFoundHandler');
 //le indicamos que va a usar json para parsear los body de los request
 app.use(express.json());
 app.use(cors());
+app.use(helmet());
 
 //crear un ruta en express
 //con app le indicamos que metodo va a utilizar (get, post, put, etc)
