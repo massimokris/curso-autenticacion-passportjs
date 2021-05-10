@@ -19,7 +19,7 @@
     "express": "^4.17.1",
     "express-session": "^1.16.2",
     "helmet": "^3.21.2",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.21",
     "passport": "^0.4.0",
     "passport-google-oauth": "^2.0.0",
     "passport-http": "^0.3.0",
